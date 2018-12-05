@@ -9,6 +9,7 @@ use std::ffi::CStr;
 use std::mem;
 use std::os::unix::prelude::*;
 
+#[cfg(not(target_os = "solaris"))]
 use sys::termios::Termios;
 use {Result, Error, fcntl};
 use errno::Errno;
@@ -202,6 +203,7 @@ pub fn unlockpt(fd: &PtyMaster) -> Result<()> {
 /// If `winsize` is not `None`, the window size of the slave will be set to
 /// the values in `winsize`. If `termios` is not `None`, the pseudoterminal's
 /// terminal settings of the slave will be set to the values in `termios`.
+#[cfg(not(target_os = "solaris"))]
 #[inline]
 pub fn openpty<'a, 'b, T: Into<Option<&'a Winsize>>, U: Into<Option<&'b Termios>>>(winsize: T, termios: U) -> Result<OpenptyResult> {
     use std::ptr;

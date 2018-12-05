@@ -817,7 +817,8 @@ pub fn sethostname<S: AsRef<OsStr>>(name: S) -> Result<()> {
         if #[cfg(any(target_os = "dragonfly",
                      target_os = "freebsd",
                      target_os = "ios",
-                     target_os = "macos", ))] {
+                     target_os = "macos",
+                     target_os = "solaris", ))] {
             type sethostname_len_t = c_int;
         } else {
             type sethostname_len_t = size_t;
@@ -998,7 +999,8 @@ pub fn pipe() -> Result<(RawFd, RawFd)> {
           target_os = "freebsd",
           target_os = "linux",
           target_os = "netbsd",
-          target_os = "openbsd"))]
+          target_os = "openbsd",
+          target_os = "solaris"))]
 pub fn pipe2(flags: OFlag) -> Result<(RawFd, RawFd)> {
     let mut fds: [c_int; 2] = unsafe { mem::uninitialized() };
 
@@ -1305,7 +1307,8 @@ pub fn setgroups(groups: &[Gid]) -> Result<()> {
                      target_os = "ios",
                      target_os = "macos",
                      target_os = "netbsd",
-                     target_os = "openbsd"))] {
+                     target_os = "openbsd",
+                     target_os = "solaris"))] {
             type setgroups_ngroups_t = c_int;
         } else {
             type setgroups_ngroups_t = size_t;
@@ -1341,7 +1344,7 @@ pub fn setgroups(groups: &[Gid]) -> Result<()> {
 /// and `setgroups()`. Additionally, while some implementations will return a
 /// partial list of groups when `NGROUPS_MAX` is exceeded, this implementation
 /// will only ever return the complete list or else an error.
-#[cfg(not(any(target_os = "ios", target_os = "macos")))]
+#[cfg(not(any(target_os = "ios", target_os = "macos", target_os = "solaris")))]
 pub fn getgrouplist(user: &CStr, group: Gid) -> Result<Vec<Gid>> {
     let ngroups_max = match sysconf(SysconfVar::NGROUPS_MAX) {
         Ok(Some(n)) => n as c_int,

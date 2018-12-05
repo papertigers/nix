@@ -343,11 +343,16 @@ libc_enum!{
                 target_os = "openbsd"))]
         B76800,
         B115200,
+        #[cfg(target_os = "solaris")]
+        B153600,
         B230400,
         #[cfg(any(target_os = "android",
                   target_os = "freebsd",
                   target_os = "linux",
-                  target_os = "netbsd"))]
+                  target_os = "netbsd",
+                  target_os = "solaris"))]
+        #[cfg(target_os = "solaris")]
+        B307200,
         B460800,
         #[cfg(any(target_os = "android", target_os = "linux"))]
         B500000,
@@ -356,7 +361,8 @@ libc_enum!{
         #[cfg(any(target_os = "android",
                   target_os = "freebsd",
                   target_os = "linux",
-                  target_os = "netbsd"))]
+                  target_os = "netbsd",
+                  target_os = "solaris"))]
         B921600,
         #[cfg(any(target_os = "android", target_os = "linux"))]
         B1000000,
@@ -548,7 +554,8 @@ libc_enum! {
                 target_os = "freebsd",
                 target_os = "macos",
                 target_os = "netbsd",
-                target_os = "openbsd"))]
+                target_os = "openbsd",
+                target_os = "solaris"))]
         VDSUSP,
         VEOF,
         VEOL,
@@ -560,6 +567,7 @@ libc_enum! {
         VKILL,
         VLNEXT,
         #[cfg(not(all(target_os = "linux", target_arch = "sparc64")))]
+        #[cfg(not(target_os = "solaris"))]
         VMIN,
         VQUIT,
         VREPRINT,
@@ -577,6 +585,7 @@ libc_enum! {
         #[cfg(target_os = "haiku")]
         VSWTCH,
         #[cfg(not(all(target_os = "linux", target_arch = "sparc64")))]
+        #[cfg(not(target_os = "solaris"))]
         VTIME,
         VWERASE,
         #[cfg(target_os = "dragonfly")]
@@ -905,7 +914,8 @@ cfg_if!{
                  target_os = "ios",
                  target_os = "macos",
                  target_os = "netbsd",
-                 target_os = "openbsd"))] {
+                 target_os = "openbsd",
+                 target_os = "solaris"))] {
         /// Get input baud rate (see
         /// [cfgetispeed(3p)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/cfgetispeed.html)).
         ///
@@ -951,11 +961,25 @@ cfg_if!{
         ///
         /// `cfsetspeed()` sets the input and output baud rate in the given termios structure. Note that
         /// this is part of the 4.4BSD standard and not part of POSIX.
-        pub fn cfsetspeed<T: Into<u32>>(termios: &mut Termios, baud: T) -> Result<()> {
-            let inner_termios = unsafe { termios.get_libc_termios_mut() };
-            let res = unsafe { libc::cfsetspeed(inner_termios, baud.into() as libc::speed_t) };
-            termios.update_wrapper();
-            Errno::result(res).map(drop)
+        cfg_if! {
+            if #[cfg(target_os = "solaris")] {
+                pub fn cfsetspeed<T: Into<u32>>(termios: &mut Termios, baud: T) -> Result<()> {
+                    let inner_termios = unsafe { termios.get_libc_termios_mut() };
+                    let baud = baud.into();
+                    /* XXX this needs to be fixed */
+                    let _res = unsafe { libc::cfsetispeed(inner_termios, baud as libc::speed_t) };
+                    let res = unsafe { libc::cfsetospeed(inner_termios, baud as libc::speed_t) };
+                    termios.update_wrapper();
+                    Errno::result(res).map(drop)
+                }
+            } else {
+                pub fn cfsetspeed<T: Into<u32>>(termios: &mut Termios, baud: T) -> Result<()> {
+                    let inner_termios = unsafe { termios.get_libc_termios_mut() };
+                    let res = unsafe { libc::cfsetspeed(inner_termios, baud.into() as libc::speed_t) };
+                    termios.update_wrapper();
+                    Errno::result(res).map(drop)
+                }
+            }
         }
     } else {
         /// Get input baud rate (see

@@ -244,6 +244,8 @@ libc_bitflags!(
         /// Interface is offline
         #[cfg(any(target_os = "solaris"))]
         IFF_OFFLINE;
+        /*
+         * XXX These are i64 so things don't compile
         #[cfg(any(target_os = "solaris"))]
         IFF_COS_ENABLED;
         /// Prefer as source addr.
@@ -264,5 +266,6 @@ libc_bitflags!(
         /// IPMP IP interface
         #[cfg(any(target_os = "solaris"))]
         IFF_IPMP;
+        */
     }
 );

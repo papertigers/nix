@@ -19,7 +19,8 @@ use ::sys::socket::addr::sys_control::SysControlAddr;
           target_os = "linux",
           target_os = "macos",
           target_os = "netbsd",
-          target_os = "openbsd"))]
+          target_os = "openbsd",
+          target_os = "solaris"))]
 pub use self::datalink::LinkAddr;
 
 /// These constants specify the protocol family to be used
@@ -93,12 +94,13 @@ pub enum AddressFamily {
     Can = libc::AF_CAN,
     #[cfg(any(target_os = "android", target_os = "linux"))]
     Tipc = libc::AF_TIPC,
-    #[cfg(not(any(target_os = "ios", target_os = "macos")))]
+    #[cfg(not(any(target_os = "ios", target_os = "macos", target_os = "solaris")))]
     Bluetooth = libc::AF_BLUETOOTH,
     #[cfg(any(target_os = "android", target_os = "linux"))]
     Iucv = libc::AF_IUCV,
     #[cfg(any(target_os = "android", target_os = "linux"))]
     RxRpc = libc::AF_RXRPC,
+    #[cfg(not(target_os = "solaris"))]
     Isdn = libc::AF_ISDN,
     #[cfg(any(target_os = "android", target_os = "linux"))]
     Phonet = libc::AF_PHONET,
@@ -186,7 +188,8 @@ pub enum AddressFamily {
               target_os = "ios",
               target_os = "macos",
               target_os = "netbsd",
-              target_os = "openbsd"))]
+              target_os = "openbsd",
+              target_os = "solaris"))]
     Link = libc::AF_LINK,
     #[cfg(any(target_os = "dragonfly",
               target_os = "freebsd",
@@ -1183,6 +1186,118 @@ mod datalink {
             let a = self.0;
             (a.sll_family, a.sll_protocol, a.sll_ifindex, a.sll_hatype,
                 a.sll_pkttype, a.sll_halen, a.sll_addr).hash(s);
+        }
+    }
+
+    impl fmt::Display for LinkAddr {
+        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+            let addr = self.addr();
+            write!(f, "{:02x}:{:02x}:{:02x}:{:02x}:{:02x}:{:02x}",
+                addr[0],
+                addr[1],
+                addr[2],
+                addr[3],
+                addr[4],
+                addr[5])
+        }
+    }
+
+    impl fmt::Debug for LinkAddr {
+        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+            fmt::Display::fmt(self, f)
+        }
+    }
+}
+
+/* XXX go over this, taken from freebsd */
+#[cfg(target_os = "solaris")]
+mod datalink {
+    use super::{libc, hash, fmt, AddressFamily};
+
+    /// Hardware Address
+    #[derive(Clone, Copy)]
+    pub struct LinkAddr(pub libc::sockaddr_dl);
+
+    impl LinkAddr {
+        pub fn family(&self) -> AddressFamily {
+            assert_eq!(self.0.sdl_family as i32, libc::AF_LINK);
+            AddressFamily::Link
+        }
+
+        /// interface index, if != 0, system given index for interface
+        pub fn ifindex(&self) -> usize {
+            self.0.sdl_index as usize
+        }
+
+        /// Datalink type
+        pub fn datalink_type(&self) -> u8 {
+            self.0.sdl_type
+        }
+
+        // MAC address start position
+        pub fn nlen(&self) -> usize {
+            self.0.sdl_nlen as usize
+        }
+
+        /// link level address length
+        pub fn alen(&self) -> usize {
+            self.0.sdl_alen as usize
+        }
+
+        /// link layer selector length
+        pub fn slen(&self) -> usize {
+            self.0.sdl_slen as usize
+        }
+
+        /// if link level address length == 0,
+        /// or `sdl_data` not be larger.
+        pub fn is_empty(&self) -> bool {
+            let nlen = self.nlen();
+            let alen = self.alen();
+            let data_len = self.0.sdl_data.len();
+
+            if alen > 0 && nlen + alen < data_len {
+                false
+            } else {
+                true
+            }
+        }
+
+        /// Physical-layer address (MAC)
+        pub fn addr(&self) -> [u8; 6] {
+            let nlen = self.nlen();
+            let data = self.0.sdl_data;
+
+            assert!(!self.is_empty());
+
+            let a = data[nlen] as u8;
+            let b = data[nlen + 1] as u8;
+            let c = data[nlen + 2] as u8;
+            let d = data[nlen + 3] as u8;
+            let e = data[nlen + 4] as u8;
+            let f = data[nlen + 5] as u8;
+
+            [a, b, c, d, e, f]
+        }
+    }
+
+    impl Eq for LinkAddr {}
+
+    impl PartialEq for LinkAddr {
+        fn eq(&self, other: &Self) -> bool {
+            let (a, b) = (self.0, other.0);
+            (a.sdl_family, a.sdl_index, a.sdl_type,
+                a.sdl_nlen, a.sdl_alen, a.sdl_slen, &a.sdl_data[..]) ==
+            (b.sdl_family, b.sdl_index, b.sdl_type,
+                b.sdl_nlen, b.sdl_alen, b.sdl_slen, &b.sdl_data[..])
+        }
+    }
+
+    impl hash::Hash for LinkAddr {
+        fn hash<H: hash::Hasher>(&self, s: &mut H) {
+            let a = self.0;
+            (a.sdl_family, a.sdl_index, a.sdl_type,
+                a.sdl_nlen, a.sdl_alen, a.sdl_slen, &a.sdl_data[..]).hash(s);
         }
     }
 

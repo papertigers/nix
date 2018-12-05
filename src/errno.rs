@@ -38,6 +38,10 @@ cfg_if! {
         unsafe fn errno_location() -> *mut c_int {
             libc::__errno()
         }
+    } else if #[cfg(target_os = "solaris")] {
+        unsafe fn errno_location() -> *mut c_int {
+            libc::___errno()
+        }
     } else if #[cfg(target_os = "linux")] {
         unsafe fn errno_location() -> *mut c_int {
             libc::__errno_location()
@@ -392,10 +396,10 @@ fn desc(errno: Errno) -> &'static str {
         #[cfg(any(target_os = "freebsd", target_os = "dragonfly"))]
         EDOOFUS         => "Programming error",
 
-        #[cfg(any(target_os = "freebsd", target_os = "dragonfly"))]
+        #[cfg(any(target_os = "freebsd", target_os = "dragonfly", target_os = "solaris"))]
         EMULTIHOP       => "Multihop attempted",
 
-        #[cfg(any(target_os = "freebsd", target_os = "dragonfly"))]
+        #[cfg(any(target_os = "freebsd", target_os = "dragonfly", target_os = "solaris"))]
         ENOLINK         => "Link has been severed",
 
         #[cfg(target_os = "freebsd")]
@@ -407,43 +411,49 @@ fn desc(errno: Errno) -> &'static str {
         #[cfg(any(target_os = "macos", target_os = "freebsd", target_os = "dragonfly", target_os = "ios", target_os = "openbsd", target_os = "netbsd"))]
         ENEEDAUTH       => "Need authenticator",
 
-        #[cfg(any(target_os = "macos", target_os = "freebsd", target_os = "dragonfly", target_os = "ios", target_os = "openbsd", target_os = "netbsd"))]
+        #[cfg(any(target_os = "macos", target_os = "freebsd", target_os = "dragonfly", target_os = "ios", target_os = "openbsd", target_os = "netbsd", target_os = "solaris"))]
         EOVERFLOW       => "Value too large to be stored in data type",
 
-        #[cfg(any(target_os = "macos", target_os = "freebsd", target_os = "dragonfly", target_os = "ios", target_os = "netbsd"))]
+        #[cfg(any(target_os = "macos", target_os = "freebsd", target_os = "dragonfly", target_os = "ios", target_os = "openbsd", target_os = "netbsd", target_os = "solaris"))]
         EILSEQ          => "Illegal byte sequence",
 
         #[cfg(any(target_os = "macos", target_os = "freebsd", target_os = "dragonfly", target_os = "ios", target_os = "openbsd", target_os = "netbsd"))]
         ENOATTR         => "Attribute not found",
 
-        #[cfg(any(target_os = "macos", target_os = "freebsd", target_os = "dragonfly", target_os = "ios", target_os = "netbsd"))]
+        #[cfg(any(target_os = "macos", target_os = "freebsd", target_os = "dragonfly", target_os = "ios", target_os = "openbsd", target_os = "netbsd", target_os = "solaris"))]
         EBADMSG         => "Bad message",
 
-        #[cfg(any(target_os = "macos", target_os = "freebsd", target_os = "dragonfly", target_os = "ios", target_os = "netbsd"))]
+        #[cfg(any(target_os = "macos", target_os = "freebsd", target_os = "dragonfly", target_os = "ios", target_os = "openbsd", target_os = "netbsd", target_os = "solaris"))]
         EPROTO          => "Protocol error",
 
         #[cfg(any(target_os = "macos", target_os = "freebsd", target_os = "ios"))]
         ENOTRECOVERABLE => "State not recoverable",
 
+        #[cfg(target_os = "solaris")]
+        ENOTRECOVERABLE => "Lock is not recoverable",
+
         #[cfg(any(target_os = "macos", target_os = "freebsd", target_os = "ios"))]
         EOWNERDEAD      => "Previous owner died",
 
-        #[cfg(any(target_os = "macos", target_os = "freebsd", target_os = "dragonfly", target_os = "ios", target_os = "openbsd", target_os = "netbsd"))]
+        #[cfg(target_os = "solaris")]
+        EOWNERDEAD      => "Process died with the lock",
+
+        #[cfg(any(target_os = "macos", target_os = "freebsd", target_os = "dragonfly", target_os = "ios", target_os = "openbsd", target_os = "netbsd", target_os = "solaris"))]
         ENOTSUP         => "Operation not supported",
 
         #[cfg(any(target_os = "macos", target_os = "freebsd", target_os = "dragonfly", target_os = "ios", target_os = "openbsd", target_os = "netbsd"))]
         EPROCLIM        => "Too many processes",
 
-        #[cfg(any(target_os = "macos", target_os = "freebsd", target_os = "dragonfly", target_os = "ios", target_os = "openbsd", target_os = "netbsd"))]
+        #[cfg(any(target_os = "macos", target_os = "freebsd", target_os = "dragonfly", target_os = "ios", target_os = "openbsd", target_os = "netbsd", target_os = "solaris"))]
         EUSERS          => "Too many users",
 
-        #[cfg(any(target_os = "macos", target_os = "freebsd", target_os = "dragonfly", target_os = "ios", target_os = "openbsd", target_os = "netbsd"))]
+        #[cfg(any(target_os = "macos", target_os = "freebsd", target_os = "dragonfly", target_os = "ios", target_os = "openbsd", target_os = "netbsd", target_os = "solaris"))]
         EDQUOT          => "Disc quota exceeded",
 
-        #[cfg(any(target_os = "macos", target_os = "freebsd", target_os = "dragonfly", target_os = "ios", target_os = "openbsd", target_os = "netbsd"))]
+        #[cfg(any(target_os = "macos", target_os = "freebsd", target_os = "dragonfly", target_os = "ios", target_os = "openbsd", target_os = "netbsd", target_os = "solaris"))]
         ESTALE          => "Stale NFS file handle",
 
-        #[cfg(any(target_os = "macos", target_os = "freebsd", target_os = "dragonfly", target_os = "ios", target_os = "openbsd", target_os = "netbsd"))]
+        #[cfg(any(target_os = "macos", target_os = "freebsd", target_os = "dragonfly", target_os = "ios", target_os = "openbsd", target_os = "netbsd", target_os = "solaris"))]
         EREMOTE         => "Too many levels of remote in path",
 
         #[cfg(any(target_os = "macos", target_os = "freebsd", target_os = "dragonfly", target_os = "ios", target_os = "openbsd", target_os = "netbsd"))]
@@ -467,7 +477,7 @@ fn desc(errno: Errno) -> &'static str {
         #[cfg(any(target_os = "macos", target_os = "freebsd", target_os = "dragonfly", target_os = "ios", target_os = "openbsd", target_os = "netbsd"))]
         EAUTH           => "Authentication error",
 
-        #[cfg(any(target_os = "macos", target_os = "freebsd", target_os = "dragonfly", target_os = "ios", target_os = "openbsd", target_os = "netbsd"))]
+        #[cfg(any(target_os = "macos", target_os = "freebsd", target_os = "dragonfly", target_os = "ios", target_os = "openbsd", target_os = "netbsd", target_os = "solaris"))]
         ECANCELED       => "Operation canceled",
 
         #[cfg(any(target_os = "macos", target_os = "ios"))]
@@ -1271,6 +1281,198 @@ mod consts {
     }
 }
 
+
+/* XXX Fix solaris mapping -- stolen from freebsd section */
+#[cfg(target_os = "solaris")]
+mod consts {
+    use libc;
+
+    #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+    #[repr(i32)]
+    pub enum Errno {
+        UnknownErrno    = 0,
+        EPERM           = libc::EPERM,
+        ENOENT          = libc::ENOENT,
+        ESRCH           = libc::ESRCH,
+        EINTR           = libc::EINTR,
+        EIO             = libc::EIO,
+        ENXIO           = libc::ENXIO,
+        E2BIG           = libc::E2BIG,
+        ENOEXEC         = libc::ENOEXEC,
+        EBADF           = libc::EBADF,
+        ECHILD          = libc::ECHILD,
+        EDEADLK         = libc::EDEADLK,
+        ENOMEM          = libc::ENOMEM,
+        EACCES          = libc::EACCES,
+        EFAULT          = libc::EFAULT,
+        ENOTBLK         = libc::ENOTBLK,
+        EBUSY           = libc::EBUSY,
+        EEXIST          = libc::EEXIST,
+        EXDEV           = libc::EXDEV,
+        ENODEV          = libc::ENODEV,
+        ENOTDIR         = libc::ENOTDIR,
+        EISDIR          = libc::EISDIR,
+        EINVAL          = libc::EINVAL,
+        ENFILE          = libc::ENFILE,
+        EMFILE          = libc::EMFILE,
+        ENOTTY          = libc::ENOTTY,
+        ETXTBSY         = libc::ETXTBSY,
+        EFBIG           = libc::EFBIG,
+        ENOSPC          = libc::ENOSPC,
+        ESPIPE          = libc::ESPIPE,
+        EROFS           = libc::EROFS,
+        EMLINK          = libc::EMLINK,
+        EPIPE           = libc::EPIPE,
+        EDOM            = libc::EDOM,
+        ERANGE          = libc::ERANGE,
+        EAGAIN          = libc::EAGAIN,
+        EINPROGRESS     = libc::EINPROGRESS,
+        EALREADY        = libc::EALREADY,
+        ENOTSOCK        = libc::ENOTSOCK,
+        EDESTADDRREQ    = libc::EDESTADDRREQ,
+        EMSGSIZE        = libc::EMSGSIZE,
+        EPROTOTYPE      = libc::EPROTOTYPE,
+        ENOPROTOOPT     = libc::ENOPROTOOPT,
+        EPROTONOSUPPORT = libc::EPROTONOSUPPORT,
+        ESOCKTNOSUPPORT = libc::ESOCKTNOSUPPORT,
+        ENOTSUP         = libc::ENOTSUP,
+        EPFNOSUPPORT    = libc::EPFNOSUPPORT,
+        EAFNOSUPPORT    = libc::EAFNOSUPPORT,
+        EADDRINUSE      = libc::EADDRINUSE,
+        EADDRNOTAVAIL   = libc::EADDRNOTAVAIL,
+        ENETDOWN        = libc::ENETDOWN,
+        ENETUNREACH     = libc::ENETUNREACH,
+        ENETRESET       = libc::ENETRESET,
+        ECONNABORTED    = libc::ECONNABORTED,
+        ECONNRESET      = libc::ECONNRESET,
+        ENOBUFS         = libc::ENOBUFS,
+        EISCONN         = libc::EISCONN,
+        ENOTCONN        = libc::ENOTCONN,
+        ESHUTDOWN       = libc::ESHUTDOWN,
+        ETOOMANYREFS    = libc::ETOOMANYREFS,
+        ETIMEDOUT       = libc::ETIMEDOUT,
+        ECONNREFUSED    = libc::ECONNREFUSED,
+        ELOOP           = libc::ELOOP,
+        ENAMETOOLONG    = libc::ENAMETOOLONG,
+        EHOSTDOWN       = libc::EHOSTDOWN,
+        EHOSTUNREACH    = libc::EHOSTUNREACH,
+        ENOTEMPTY       = libc::ENOTEMPTY,
+        EUSERS          = libc::EUSERS,
+        EDQUOT          = libc::EDQUOT,
+        ESTALE          = libc::ESTALE,
+        EREMOTE         = libc::EREMOTE,
+        ENOLCK          = libc::ENOLCK,
+        ENOSYS          = libc::ENOSYS,
+        EIDRM           = libc::EIDRM,
+        ENOMSG          = libc::ENOMSG,
+        EOVERFLOW       = libc::EOVERFLOW,
+        ECANCELED       = libc::ECANCELED,
+        EILSEQ          = libc::EILSEQ,
+        EBADMSG         = libc::EBADMSG,
+        EMULTIHOP       = libc::EMULTIHOP,
+        ENOLINK         = libc::ENOLINK,
+        EPROTO          = libc::EPROTO,
+        ENOTRECOVERABLE = libc::ENOTRECOVERABLE,
+        EOWNERDEAD      = libc::EOWNERDEAD,
+    }
+
+    pub const ELAST: Errno       = Errno::EOWNERDEAD;
+    pub const EWOULDBLOCK: Errno = Errno::EAGAIN;
+    pub const EDEADLOCK:   Errno = Errno::EDEADLK;
+
+    pub const EL2NSYNC: Errno = Errno::UnknownErrno;
+
+    pub fn from_i32(e: i32) -> Errno {
+        use self::Errno::*;
+
+        match e {
+            libc::EPERM => EPERM,
+            libc::ENOENT => ENOENT,
+            libc::ESRCH => ESRCH,
+            libc::EINTR => EINTR,
+            libc::EIO => EIO,
+            libc::ENXIO => ENXIO,
+            libc::E2BIG => E2BIG,
+            libc::ENOEXEC => ENOEXEC,
+            libc::EBADF => EBADF,
+            libc::ECHILD => ECHILD,
+            libc::EDEADLK => EDEADLK,
+            libc::ENOMEM => ENOMEM,
+            libc::EACCES => EACCES,
+            libc::EFAULT => EFAULT,
+            libc::ENOTBLK => ENOTBLK,
+            libc::EBUSY => EBUSY,
+            libc::EEXIST => EEXIST,
+            libc::EXDEV => EXDEV,
+            libc::ENODEV => ENODEV,
+            libc::ENOTDIR => ENOTDIR,
+            libc::EISDIR => EISDIR,
+            libc::EINVAL => EINVAL,
+            libc::ENFILE => ENFILE,
+            libc::EMFILE => EMFILE,
+            libc::ENOTTY => ENOTTY,
+            libc::ETXTBSY => ETXTBSY,
+            libc::EFBIG => EFBIG,
+            libc::ENOSPC => ENOSPC,
+            libc::ESPIPE => ESPIPE,
+            libc::EROFS => EROFS,
+            libc::EMLINK => EMLINK,
+            libc::EPIPE => EPIPE,
+            libc::EDOM => EDOM,
+            libc::ERANGE => ERANGE,
+            libc::EAGAIN => EAGAIN,
+            libc::EINPROGRESS => EINPROGRESS,
+            libc::EALREADY => EALREADY,
+            libc::ENOTSOCK => ENOTSOCK,
+            libc::EDESTADDRREQ => EDESTADDRREQ,
+            libc::EMSGSIZE => EMSGSIZE,
+            libc::EPROTOTYPE => EPROTOTYPE,
+            libc::ENOPROTOOPT => ENOPROTOOPT,
+            libc::EPROTONOSUPPORT => EPROTONOSUPPORT,
+            libc::ESOCKTNOSUPPORT => ESOCKTNOSUPPORT,
+            libc::ENOTSUP => ENOTSUP,
+            libc::EPFNOSUPPORT => EPFNOSUPPORT,
+            libc::EAFNOSUPPORT => EAFNOSUPPORT,
+            libc::EADDRINUSE => EADDRINUSE,
+            libc::EADDRNOTAVAIL => EADDRNOTAVAIL,
+            libc::ENETDOWN => ENETDOWN,
+            libc::ENETUNREACH => ENETUNREACH,
+            libc::ENETRESET => ENETRESET,
+            libc::ECONNABORTED => ECONNABORTED,
+            libc::ECONNRESET => ECONNRESET,
+            libc::ENOBUFS => ENOBUFS,
+            libc::EISCONN => EISCONN,
+            libc::ENOTCONN => ENOTCONN,
+            libc::ESHUTDOWN => ESHUTDOWN,
+            libc::ETOOMANYREFS => ETOOMANYREFS,
+            libc::ETIMEDOUT => ETIMEDOUT,
+            libc::ECONNREFUSED => ECONNREFUSED,
+            libc::ELOOP => ELOOP,
+            libc::ENAMETOOLONG => ENAMETOOLONG,
+            libc::EHOSTDOWN => EHOSTDOWN,
+            libc::EHOSTUNREACH => EHOSTUNREACH,
+            libc::ENOTEMPTY => ENOTEMPTY,
+            libc::EUSERS => EUSERS,
+            libc::EDQUOT => EDQUOT,
+            libc::ESTALE => ESTALE,
+            libc::EREMOTE => EREMOTE,
+            libc::ENOLCK => ENOLCK,
+            libc::ENOSYS => ENOSYS,
+            libc::EIDRM => EIDRM,
+            libc::ENOMSG => ENOMSG,
+            libc::EOVERFLOW => EOVERFLOW,
+            libc::ECANCELED => ECANCELED,
+            libc::EILSEQ => EILSEQ,
+            libc::EBADMSG => EBADMSG,
+            libc::EMULTIHOP => EMULTIHOP,
+            libc::ENOLINK => ENOLINK,
+            libc::EPROTO => EPROTO,
+            libc::ENOTRECOVERABLE => ENOTRECOVERABLE,
+            libc::EOWNERDEAD => EOWNERDEAD,
+            _   => UnknownErrno,
+        }
+    }
+}
 
 #[cfg(target_os = "dragonfly")]
 mod consts {
