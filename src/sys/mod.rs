@@ -23,6 +23,7 @@ pub mod eventfd;
 #[cfg(any(target_os = "android",
           target_os = "dragonfly",
           target_os = "freebsd",
+          target_os = "solaris",
           target_os = "ios",
           target_os = "linux",
           target_os = "macos",
