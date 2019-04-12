@@ -16,7 +16,7 @@ exclude     = [
 ]
 
 [dependencies]
-libc   = { path = "../libc" }
+libc = { git = "https://github.com/papertigers/libc", branch = "illumos-readdir" }
 bitflags = "1.0"
 cfg-if = "0.1.0"
 void = "1.0.2"
